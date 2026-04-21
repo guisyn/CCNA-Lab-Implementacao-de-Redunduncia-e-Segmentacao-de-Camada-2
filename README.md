@@ -47,7 +47,7 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 | Router Cisco (IOSv) | 1 | Roteamento inter-VLAN (Router-on-a-Stick) |
 | Switch L2 Distribuição | 2 | DSW-01, DSW-02 — Camada de distribuição |
 | Switch L2 Acesso | 2 | ASW-01, ASW-02 — Camada de acesso |
-| VPCs (hosts) | 8+ | VPC_6, VPC_7, VPC_8, VPC_9 |
+| VPCs (hosts) | 4 | VPC_6, VPC_7, VPC_8, VPC_9 |
 
 ---
 
@@ -67,7 +67,7 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 | VLAN | Gateway |
 |---|---|
 | VLAN 21 — TI | 10.2.21.1/24 |
-| VLAN 30 — LOGÍSTICA | 10.2.31.1/24 |
+| VLAN 31 — LOGÍSTICA | 10.2.31.1/24 |
 | VLAN 99 — GERÊNCIA | 10.2.99.1/24 |
 
 ### Hosts (VPCs)
