@@ -41,8 +41,8 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 |---|---|---|
 | Router Cisco (IOSv) | 1 | Roteamento inter-VLAN (Router-on-a-Stick) |
 | Switch L2 Distribuição | 2 | DSW-01, DSW-02 — Camada de distribuição |
-| Switch L2 Acesso | 4 | ASW-01, ASW-02, ASW-03, ASW-04 — Camada de acesso |
-| VPCs (hosts) | 8+ | VPC_C, VPC_F, VPC_G, VPC_H, VPC_I, VPC_Y, VPC_1... |
+| Switch L2 Acesso | 2 | ASW-01, ASW-02 — Camada de acesso |
+| VPCs (hosts) | 8+ | VPC_6, VPC_7, VPC_8, VPC_9 |
 
 ---
 
@@ -55,7 +55,7 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 | 21 | TI | Departamento de Tecnologia da Informação |
 | 30 | LOGISTICA | Departamento de Logística |
 | 99 | GERENCIA | Departamento de Gerência |
-| 199 | NATIVA | VLAN Nativa (trunk) |
+| 199 | NATIVA | VLAN Nativa (untagged) |
 
 ### Gateways (Subinterfaces no Roteador)
 
@@ -82,6 +82,80 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 ---
 
 ## Tecnologias Utilizadas
+
+### Etapa 1 — Configuração Inicial e Segurança Básica (todos os dispositivos)
+
+Antes de qualquer configuração de rede, todos os dispositivos passaram por uma **hardening inicial**, definindo identidade, controle de acesso e proteção de credenciais. Essa etapa é considerada boa prática obrigatória em ambientes corporativos e é cobrada diretamente no CCNA.
+
+**Comandos aplicados (exemplo no DSW-01):**
+
+```bash
+# Acesso ao modo privilegiado e configuração global
+Switch> en
+Switch# conf t
+
+# 1. Definir o hostname do dispositivo
+Switch(config)# hostname DSW-01
+
+# 2. Criar usuário local com senha criptografada (secret = MD5)
+DSW-01(config)# username admin secret ccna
+
+# 3. Exigir autenticação local na porta de console
+DSW-01(config)# line con 0
+DSW-01(config-line)# login local
+
+# 4. Exigir autenticação local nas linhas VTY (acesso remoto SSH/Telnet)
+DSW-01(config)# line vty 0 15
+DSW-01(config-line)# login local
+
+# 5. Definir senha de enable (modo privilegiado) — criptografada com secret
+DSW-01(config)# enable secret ccna
+
+# 6. Ativar o serviço de criptografia de senhas no arquivo de configuração
+DSW-01(config)# service password-encryption
+```
+
+> 📸 *[Inserir screenshot da configuração inicial do DSW-01 aqui]*
+
+**Aspectos técnicos relevantes:**
+
+- **`hostname`** — Nomeia o dispositivo, facilitando a identificação em ambientes com múltiplos equipamentos e aparecendo no prompt de cada sessão CLI.
+- **`username secret`** — Armazena a senha com hash MD5, mais seguro do que `password` (que usa cifra reversível de tipo 7).
+- **`login local`** — Vincula as linhas de acesso (console e VTY) ao banco de usuários local do dispositivo, exigindo usuário + senha para qualquer sessão.
+- **`line vty 0 15`** — Cobre todas as 16 sessões remotas simultâneas possíveis no IOS.
+- **`enable secret`** — Protege o acesso ao modo privilegiado (`#`), onde o operador tem controle total sobre o dispositivo.
+- **`service password-encryption`** — Aplica criptografia tipo 7 sobre todas as senhas em texto plano ainda presentes no `running-config` (como `line password`), impedindo visualização direta por quem tiver acesso ao arquivo de configuração.
+
+> ✅ **Resultado:** Todos os dispositivos da topologia ficaram protegidos contra acesso não autorizado, tanto pelo console físico quanto por sessões remotas.
+
+### 2. EtherChannel L2
+
+**O que é:** O EtherChannel (também conhecido como Link Aggregation) agrupa múltiplos links físicos entre dois switches em um único link lógico. Isso dobra (ou multiplica) a largura de banda disponível e oferece redundância — se um link físico falhar, o tráfego continua pelos demais sem interrupção perceptível.
+
+**Por que foi usado:** Entre os switches de distribuição (DSW-01 e DSW-02), foram utilizados dois links físicos agrupados em um EtherChannel. Isso garante maior largura de banda no núcleo da rede e elimina o bloqueio que o STP aplicaria a um dos links caso não houvesse o agrupamento.
+
+**Modos de negociação:**
+- **LACP (802.3ad):** Protocolo aberto (IEEE). Modos: `active` / `passive`.
+- **PAgP:** Protocolo proprietário Cisco. Modos: `desirable` / `auto`.
+
+**Comandos principais (LACP):**
+
+```bash
+# Nos dois switches — interfaces a serem agrupadas
+DSW-01(config)# interface range g0/0 - 1
+DSW-01(config-if-range)# channel-group 1 mode active
+DSW-01(config-if-range)# switchport mode trunk
+DSW-01(config-if-range)# switchport trunk native vlan 199
+DSW-01(config-if-range)# switchport trunk allowed vlan 21,30,99,199
+
+# Configurar a interface lógica (Port-Channel)
+DSW-01(config)# interface port-channel 1
+DSW-01(config-if)# switchport mode trunk
+DSW-01(config-if)# switchport trunk native vlan 199
+DSW-01(config-if)# switchport trunk allowed vlan 21,30,99,199
+```
+
+> 📸 *[Inserir screenshot do `show etherchannel summary` aqui]*
 
 ### 1. VLANs (Virtual Local Area Networks)
 
@@ -153,34 +227,6 @@ Switch(config)# spanning-tree vlan 21 priority 4096
 
 ---
 
-### 3. EtherChannel L2
-
-**O que é:** O EtherChannel (também conhecido como Link Aggregation) agrupa múltiplos links físicos entre dois switches em um único link lógico. Isso dobra (ou multiplica) a largura de banda disponível e oferece redundância — se um link físico falhar, o tráfego continua pelos demais sem interrupção perceptível.
-
-**Por que foi usado:** Entre os switches de distribuição (DSW-01 e DSW-02), foram utilizados dois links físicos agrupados em um EtherChannel. Isso garante maior largura de banda no núcleo da rede e elimina o bloqueio que o STP aplicaria a um dos links caso não houvesse o agrupamento.
-
-**Modos de negociação:**
-- **LACP (802.3ad):** Protocolo aberto (IEEE). Modos: `active` / `passive`.
-- **PAgP:** Protocolo proprietário Cisco. Modos: `desirable` / `auto`.
-
-**Comandos principais (LACP):**
-
-```bash
-# Nos dois switches — interfaces a serem agrupadas
-DSW-01(config)# interface range g0/0 - 1
-DSW-01(config-if-range)# channel-group 1 mode active
-DSW-01(config-if-range)# switchport mode trunk
-DSW-01(config-if-range)# switchport trunk native vlan 199
-DSW-01(config-if-range)# switchport trunk allowed vlan 21,30,99,199
-
-# Configurar a interface lógica (Port-Channel)
-DSW-01(config)# interface port-channel 1
-DSW-01(config-if)# switchport mode trunk
-DSW-01(config-if)# switchport trunk native vlan 199
-DSW-01(config-if)# switchport trunk allowed vlan 21,30,99,199
-```
-
-> 📸 *[Inserir screenshot do `show etherchannel summary` aqui]*
 
 ---
 
