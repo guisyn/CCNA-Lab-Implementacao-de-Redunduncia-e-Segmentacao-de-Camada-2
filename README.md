@@ -115,7 +115,7 @@ DSW-01(config)# enable secret ccna
 DSW-01(config)# service password-encryption
 ```
 
-> 📸 *[Inserir screenshot da configuração inicial do DSW-01 aqui]*
+> 📸 (img/
 
 **Aspectos técnicos relevantes:**
 
