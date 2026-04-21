@@ -11,13 +11,16 @@ Demonstrar a configuração de uma topologia resiliente utilizando EtherChannel 
 2. [Topologia](#topologia)
 3. [Endereçamento IP e VLANs](#endereçamento-ip-e-vlans)
 4. [Tecnologias Utilizadas](#tecnologias-utilizadas)
-   - [VLANs](#1-vlans-virtual-local-area-networks)
-   - [Rapid-PVST+](#2-rapid-pvst-rapid-per-vlan-spanning-tree)
-   - [EtherChannel L2](#3-etherchannel-l2)
-   - [Router-on-a-Stick](#4-router-on-a-stick)
-5. [Configuração Passo a Passo](#configuração-passo-a-passo)
-6. [Verificação e Testes](#verificação-e-testes)
-7. [Conclusão Técnica](#conclusão-técnica)
+   - [Configuração Inicial](#1--configuração-inicial-e-segurança-básica)
+   - [EtherChannel L2](#2-etherchannel-l2)
+   - [VLANs](#3-vlans-virtual-local-area-networks)
+   - [Rapid-PVST+](#4-rapid-pvst-rapid-per-vlan-spanning-tree)
+   - [Portas de Acesso e Segurança STP](#5-portas-de-acesso-e-segurança-stp-portfast--bpdu-guard)
+   - [Router-on-a-Stick](#6-router-on-a-stick)
+   - [Serviço DHCP](#7-serviço-dhcp)
+6. [Configuração Passo a Passo](#configuração-passo-a-passo)
+7. [Verificação e Testes](#verificação-e-testes)
+8. [Conclusão Técnica](#conclusão-técnica)
 
 ---
 
@@ -55,7 +58,7 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 | VLAN ID | Nome | Descrição |
 |---|---|---|
 | 21 | TI | Departamento de Tecnologia da Informação |
-| 30 | LOGISTICA | Departamento de Logística |
+| 31 | LOGISTICA | Departamento de Logística |
 | 99 | GERENCIA | Departamento de Gerência |
 | 199 | NATIVA | VLAN Nativa (untagged) |
 
@@ -69,23 +72,30 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 
 ### Hosts (VPCs)
 
-| Host | VLAN | IP |
-|---|---|---|
-| VPC_6 | — | 10.2.21.2/24|
-| VPC_7 | — | 10.2.31.2/24|
-| VPC_8 | — | 10.2.21.3/24|
-| VPC_9 | — | 10.2.31.3/24|
+### Hosts (VPCs)
+| Host  | VLAN | IP           |
+|-------|------|--------------|
+| VPC_6 | 21   | 10.2.21.2/24 |
+| VPC_7 | 31   | 10.2.31.2/24 |
+| VPC_8 | 21   | 10.2.21.3/24 |
+| VPC_9 | 31   | 10.2.31.3/24 |
 
-| DSW-01 (SVI) | — | 10.2.99.3/24 |
-| DSW-02 (SVI) | — | 10.2.99.2/24 |
-| ASW-01 (SVI) | — | 10.2.99.5/24 |
-| ASW-02 (SVI) | — | 10.2.99.4/24 |
+### Endereços de Gerenciamento (SVIs — VLAN 99)
+| Dispositivo | IP           |
+|-------------|--------------|
+| DSW-01      | 10.2.99.3/24 |
+| DSW-02      | 10.2.99.2/24 |
+| ASW-01      | 10.2.99.5/24 |
+| ASW-02      | 10.2.99.4/24 |
+
+---
+
 
 ---
 
 ## Tecnologias Utilizadas
 
-### Etapa 1 — Configuração Inicial e Segurança Básica (todos os dispositivos)
+### 1 — Configuração Inicial e Segurança Básica (todos os dispositivos)
 
 Antes de qualquer configuração de rede, todos os dispositivos passaram por uma **hardening inicial**, definindo identidade, controle de acesso e proteção de credenciais. Essa etapa é considerada boa prática obrigatória em ambientes corporativos e é cobrada diretamente no CCNA.
 
@@ -203,7 +213,7 @@ Switch(config-if)# switchport trunk allowed vlan 21,30,99,199
 
 ---
 
-### 2. Rapid-PVST+ (Rapid Per-VLAN Spanning Tree)
+### 4. Rapid-PVST+ (Rapid Per-VLAN Spanning Tree)
 
 **O que é:** O Rapid-PVST+ é uma versão aprimorada do Spanning Tree Protocol (STP). Ele opera por VLAN — ou seja, cada VLAN tem sua própria instância de STP — e converge muito mais rápido que o STP clássico (802.1D), reduzindo o tempo de recuperação após uma falha de segundos para milissegundos.
 
@@ -221,24 +231,64 @@ Switch(config-if)# switchport trunk allowed vlan 21,30,99,199
 Switch(config)# spanning-tree mode rapid-pvst
 
 # Definir Root Bridge primário e secundário por VLAN
-DSW-01(config)# spanning-tree vlan 21,30 root primary
-DSW-01(config)# spanning-tree vlan 99 root secondary
+DSW-01(config)# spanning-tree vlan 21,99 root primary
+DSW-01(config)# spanning-tree vlan 31 root secondary
 
-DSW-02(config)# spanning-tree vlan 99 root primary
-DSW-02(config)# spanning-tree vlan 21,30 root secondary
+DSW-02(config)# spanning-tree vlan 31 root primary
+DSW-02(config)# spanning-tree vlan 21,99 root secondary
 
-# Ajuste de prioridade manual (múltiplo de 4096)
-Switch(config)# spanning-tree vlan 21 priority 4096
+
 ```
 
-> 📸 *[Inserir screenshot do `show spanning-tree` aqui]*
+<img width="1365" height="767" alt="DSW1-BRIDGE-CONFIG" src="https://github.com/user-attachments/assets/9fd30619-1e1e-4e3c-b30a-5c605d21a044" />
 
 ---
 
+### 5. Portas de Acesso e Segurança STP (PortFast + BPDU Guard)
+
+Com as VLANs criadas e os trunks configurados, o próximo passo foi atribuir as **portas de acesso** nos switches de acesso (ASW) às suas respectivas VLANs e aplicar os mecanismos de segurança do Spanning Tree: **PortFast** e **BPDU Guard**.
+
+**Comandos aplicados (exemplo no ASW-01):**
+
+```bash
+# Porta g2/1 — acesso na VLAN 21 (TI)
+ASW-01(config)# interface g2/1
+ASW-01(config-if)# switchport mode access
+ASW-01(config-if)# switchport access vlan 21
+
+# Porta g2/2 — acesso na VLAN 31 (Logística)
+ASW-01(config)# interface g2/2
+ASW-01(config-if)# switchport mode access
+ASW-01(config-if)# switchport access vlan 31
+
+# Aplicar PortFast e BPDU Guard nas portas de acesso (range)
+ASW-01(config)# interface range g2/1-2
+ASW-01(config-if-range)# spanning-tree portfast
+ASW-01(config-if-range)# spanning-tree bpduguard enable
+```
+
+<img width="1363" height="767" alt="ACCESS-PORTFAST" src="https://github.com/user-attachments/assets/e738444d-152d-49b3-beaa-a927a9a215aa" />
+
+
+
+**Aspectos técnicos relevantes:**
+
+- **`switchport mode access`** — Define a porta como acesso, ou seja, ela pertence a uma única VLAN e não carrega tag 802.1Q. É o modo correto para portas conectadas a hosts finais (VPCs, PCs, servidores).
+
+- **`switchport access vlan X`** — Associa a porta à VLAN correspondente ao departamento do host conectado.
+
+- **PortFast (`spanning-tree portfast`)** — Por padrão, quando uma porta sobe, o STP a mantém nos estados *Listening* e *Learning* por até 30 segundos antes de liberar tráfego (*Forwarding*). O PortFast elimina essa espera em portas de acesso, colocando-as diretamente em *Forwarding*. Isso é seguro e recomendado **somente em portas conectadas a hosts** — nunca entre switches, pois poderia causar loops. O próprio IOS emite um aviso (*Warning*) ao ser habilitado, reforçando esse cuidado.
+
+- **BPDU Guard (`spanning-tree bpduguard enable`)** — Complementa o PortFast com uma camada de segurança: se a porta receber um **BPDU** (pacote de controle do STP, gerado por switches), ela é imediatamente colocada em estado **err-disabled**, desligando-se automaticamente. Isso impede que um switch não autorizado seja conectado à rede por um usuário e cause instabilidade na topologia STP.
+
+> ⚠️ **Nota sobre o aviso do IOS:** A mensagem `%Warning: portfast should only be enabled on ports connected to a single host` exibida no terminal é esperada e não indica erro — é apenas o IOS reforçando que o recurso deve ser usado exclusivamente em portas de acesso para hosts, o que é exatamente o caso aqui.
+
+> ✅ **Resultado:** As VPCs passaram a obter conectividade imediatamente ao serem conectadas, sem aguardar a convergência do STP, e qualquer tentativa de inserir um switch não autorizado nessas portas resulta em desligamento automático da interface.
+
 
 ---
 
-### 4. Router-on-a-Stick
+### 6. Router-on-a-Stick
 
 **O que é:** Router-on-a-Stick é uma técnica de roteamento inter-VLAN que utiliza um único link físico entre o roteador e um switch, dividido em múltiplas **subinterfaces lógicas** — uma para cada VLAN. Cada subinterface possui seu próprio endereço IP, que serve de gateway para os hosts daquela VLAN.
 
@@ -273,9 +323,11 @@ Router(config-subif)# encapsulation dot1Q 199 native
 
 > 📸 *[Inserir screenshot das subinterfaces (`show ip interface brief`) aqui]*
 
-### Etapa 8 — Configuração do Servidor DHCP no Roteador
+---
 
-Com o roteamento inter-VLAN já funcional, o próximo passo foi configurar o **servidor DHCP diretamente no R-Core1**, eliminando a necessidade de atribuição manual de IPs nas VPCs. Para cada VLAN, foi criado um pool DHCP com sua respectiva rede e gateway.
+### 7. Serviço DHCP
+
+Com o roteamento inter-VLAN já funcional, o próximo passo foi configurar o **servidor DHCP diretamente no R-Core1**, eliminando a necessidade de atribuição manual de IPs nas VPCs e switches. Para cada VLAN, foi criado um pool DHCP com sua respectiva rede e gateway.
 
 **Comandos aplicados:**
 
@@ -296,7 +348,9 @@ R-Core1(dhcp-config)# network 10.2.99.0 255.255.255.0
 R-Core1(dhcp-config)# default-router 10.2.99.1
 ```
 
-> 📸 *[Inserir screenshot da configuração dos pools DHCP no R-Core1 aqui]*
+
+<img width="1365" height="767" alt="DCHP-POOL" src="https://github.com/user-attachments/assets/a413df40-c9f4-47c6-8821-8e78df7d3717" />
+
 
 **Validação nas VPCs:**
 
@@ -309,39 +363,61 @@ VPCS> ip dhcp
 VPCS> ping 10.2.31.1
 # 84 bytes from 10.2.31.1 — 5/5 pacotes bem-sucedidos
 ```
+<img width="1365" height="767" alt="VPC6-VER" src="https://github.com/user-attachments/assets/da1f62af-9092-4103-bcde-896c0121ae58" />
 
-> 📸 *[Inserir screenshot do `ip dhcp` e ping na VPC aqui]*
 
-> ✅ **Resultado:** Todas as VPCs passaram a obter IPs automaticamente, confirmando que o servidor DHCP, as subinterfaces do Router-on-a-Stick e as VLANs estão operando de forma integrada.
+Além das VPCs, as **SVIs (Switch Virtual Interfaces)** dos switches de distribuição e acesso também foram configuradas para obter endereço IP via DHCP, na VLAN 99 (Gerência). Isso permite o **gerenciamento remoto** de cada switch via Telnet/SSH, sem necessidade de IP estático em cada dispositivo.
+ 
+Uma SVI é uma interface lógica criada dentro do switch associada a uma VLAN. Ela não corresponde a nenhuma porta física — é a "interface de gerenciamento" do switch na camada 3.
+ 
+**Comandos aplicados (exemplo no DSW-01):**
+ 
+```bash
+DSW-01(config)# interface vlan 99
+DSW-01(config-if)# ip address dhcp
+DSW-01(config-if)# no shutdown
+```
+ 
+<img width="1365" height="767" alt="SVI-IP-CONFIG" src="https://github.com/user-attachments/assets/d6672e81-e944-4ddb-9dfa-bbf5f50a6738" />
+
+ 
+**O que os logs do IOS confirmam, em sequência:**
+ 
+1. `%LINEPROTO-5-UPDOWN: Interface Vlan99, changed state to down` — A SVI foi criada mas ainda não tinha conectividade (aguardando porta ativa na VLAN 99).
+2. `%LINK-3-UPDOWN: Interface Vlan99, changed state to up` — Uma porta trunk com a VLAN 99 permitida subiu, ativando a SVI.
+3. `%LINEPROTO-5-UPDOWN: Interface Vlan99, changed state to up` — O protocolo de linha ficou ativo.
+4. `%DHCP-6-ADDRESS_ASSIGN: Interface Vlan99 assigned DHCP address 10.2.99.3, mask 255.255.255.0, hostname DSW-01` — O roteador respondeu ao DHCP Discover e atribuiu o IP `10.2.99.3/24` ao DSW-01.
+**Aspectos técnicos relevantes:**
+ 
+- **SVI (`interface vlan X`)** — Interface virtual que representa a VLAN na camada 3 do switch. Para subir (`up/up`), é necessário que pelo menos uma porta física no switch esteja ativa e pertencente àquela VLAN (seja em modo access ou trunk com a VLAN permitida).
+- **`ip address dhcp`** — Faz a SVI se comportar como um cliente DHCP, enviando um *Discover* e aguardando oferta do servidor — no caso, o R-Core1.
+- **VLAN 99 como VLAN de gerência** — Isolar o tráfego de gerenciamento em uma VLAN dedicada é uma prática de segurança recomendada, impedindo que usuários em VLANs de produção (TI, Logística) acessem diretamente as interfaces de administração dos switches.
+
+
+> ✅ **Resultado:** Todas as VPCs as SVIs dos switches passaram a obter IPs automaticamente, confirmando que o servidor DHCP, as subinterfaces do Router-on-a-Stick e as VLANs estão operando de forma integrada.
 ---
 
 ## Configuração Passo a Passo
 
 A seguir, a ordem recomendada de configuração para replicar este laboratório:
 
-### Etapa 1 — Criação e nomeação das VLANs (todos os switches)
-> 📸 *[Screenshot aqui]*
+### Etapa 1 — Atribuiçaõ de hostnames, username e senha para as linhas (todos os switches)
 
-### Etapa 2 — Configuração das portas de acesso (switches de acesso)
-> 📸 *[Screenshot aqui]*
+### Etapa 2 — Criação e nomeação das VLANs (todos os switches)
 
-### Etapa 3 — Configuração dos trunks entre switches
-> 📸 *[Screenshot aqui]*
+### Etapa 3 — Configuração do EtherChannel (DSW-01 ↔ DSW-02)
 
-### Etapa 4 — Configuração do EtherChannel (DSW-01 ↔ DSW-02)
-> 📸 *[Screenshot aqui]*
+### Etapa 4 — Configuração dos links trunk
 
 ### Etapa 5 — Configuração do Rapid-PVST+ e Root Bridge
-> 📸 *[Screenshot aqui]*
 
-### Etapa 6 — Configuração do trunk no uplink para o roteador
-> 📸 *[Screenshot aqui]*
+### Etapa 6 — Configuração das portas de acesso (switches de acesso)
 
-### Etapa 7 — Configuração do Router-on-a-Stick
-> 📸 *[Screenshot aqui]*
+### Etapa 7 — Atribuir PortFast e BPDU Guard nas portas de acesso
 
-### Etapa 8 — Configuração dos gateways nas VPCs
-> 📸 *[Screenshot aqui]*
+### Etapa 8 — Configuração do Router-on-a-Stick e serviço DHCP
+
+### Etapa 9 — Configuração dos gateways nas VPCs
 
 ---
 
@@ -368,11 +444,11 @@ show ip interface brief
 show ip route
 
 # Conectividade entre hosts
-ping 10.2.31.1        # VPC na VLAN 21 pinga o gateway da VLAN 30
+ping 10.2.31.1        # VPC na VLAN 21 ou 31 pinga o gateway da VLAN 31
+ping 10.2.21.1        # VPC na VLAN 21 ou 31 pinga o gateway da VLAN 21
 ping 10.2.99.1        # Pinga gateway da gerência
 ```
 
-> 📸 *[Screenshot dos pings inter-VLAN aqui]*
 
 ---
 
