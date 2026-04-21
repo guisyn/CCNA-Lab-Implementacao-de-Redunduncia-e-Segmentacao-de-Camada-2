@@ -301,8 +301,8 @@ Router(config)# interface g0/0.21
 Router(config-subif)# encapsulation dot1Q 21
 Router(config-subif)# ip address 10.2.21.1 255.255.255.0
 
-# Subinterface para VLAN 30 — Logística
-Router(config)# interface g0/0.30
+# Subinterface para VLAN 31 — Logística
+Router(config)# interface g0/0.31
 Router(config-subif)# encapsulation dot1Q 31
 Router(config-subif)# ip address 10.2.31.1 255.255.255.0
 
@@ -349,7 +349,7 @@ R-Core1(dhcp-config)# default-router 10.2.99.1
 
 **Validação nas VPCs:**
 
-Após a configuração, as VPCs foram configuradas para obter endereço via DHCP com o comando `ip dhcp`. O roteador respondeu corretamente, distribuindo IPs dentro da faixa de cada VLAN e informando o gateway correspondente — como ilustrado abaixo, onde a VPC recebeu `10.2.31.2/24` com gateway `10.2.31.1` (VLAN 30 — Logística) e conseguiu pingar o gateway com sucesso.
+Após a configuração, as VPCs foram configuradas para obter endereço via DHCP com o comando `ip dhcp`. O roteador respondeu corretamente, distribuindo IPs dentro da faixa de cada VLAN e informando o gateway correspondente — como ilustrado abaixo, onde a VPC recebeu `10.2.31.2/24` com gateway `10.2.31.1` (VLAN 31 — Logística) e conseguiu pingar o gateway com sucesso.
 
 ```bash
 VPCS> ip dhcp
@@ -449,12 +449,13 @@ ping 10.2.99.1        # Pinga gateway da gerência
 
 ## Conclusão Técnica
 
-Este laboratório demonstra a integração de quatro pilares fundamentais da operação de redes corporativas em camada 2 e 3:
+Este laboratório demonstra a integração de cinco pilares fundamentais da operação de redes corporativas em camada 2 e 3:
 
 - **VLANs** isolam o tráfego por departamento, aumentando segurança e eficiência;
 - **Rapid-PVST+** garante redundância sem loops, com convergência rápida em caso de falha;
 - **EtherChannel** maximiza a largura de banda no core e elimina pontos únicos de falha entre os switches de distribuição;
 - **Router-on-a-Stick** viabiliza a comunicação entre VLANs com um único link físico para o roteador.
+- **DHCP centralizado** elimina configuração manual de IPs e viabiliza o gerenciamento remoto dos switches via SVIs.
 
 A topologia está alinhada com os objetivos do **CCNA 200-301** e representa um modelo prático e escalável para ambientes reais de pequeno e médio porte.
 
