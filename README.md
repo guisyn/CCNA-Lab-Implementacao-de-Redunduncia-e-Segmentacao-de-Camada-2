@@ -71,8 +71,6 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 | VLAN 99 — GERÊNCIA | 10.2.99.1/24 |
 
 ### Hosts (VPCs)
-
-### Hosts (VPCs)
 | Host  | VLAN | IP           |
 |-------|------|--------------|
 | VPC_6 | 21   | 10.2.21.2/24 |
@@ -184,7 +182,7 @@ DSW-01(config-if)# switchport trunk native vlan 199
 Switch(config)# vlan 21
 Switch(config-vlan)# name TI
 
-Switch(config)# vlan 30
+Switch(config)# vlan 31
 Switch(config-vlan)# name LOGISTICA
 
 Switch(config)# vlan 99
@@ -198,14 +196,11 @@ Switch(config-vlan)# name NATIVA
 > *Verificação com o comando 'show vlan'.*
 
 ```bash
-# Porta de acesso (host)
-Switch(config-if)# switchport mode access
-Switch(config-if)# switchport access vlan 21
 
-# Porta trunk (entre switches e para o roteador)
+# Links trunk (entre switches e para o roteador)
 Switch(config-if)# switchport mode trunk
 Switch(config-if)# switchport trunk native vlan 199
-Switch(config-if)# switchport trunk allowed vlan 21,30,99,199
+
 ```
 
 <img width="1365" height="767" alt="TRUNKS" src="https://github.com/user-attachments/assets/e5da066b-27dc-4f97-a325-7b1a40738cce" />
@@ -308,7 +303,7 @@ Router(config-subif)# ip address 10.2.21.1 255.255.255.0
 
 # Subinterface para VLAN 30 — Logística
 Router(config)# interface g0/0.30
-Router(config-subif)# encapsulation dot1Q 30
+Router(config-subif)# encapsulation dot1Q 31
 Router(config-subif)# ip address 10.2.31.1 255.255.255.0
 
 # Subinterface para VLAN 99 — Gerência
@@ -337,7 +332,7 @@ R-Core1(config)# ip dhcp pool VLAN21_POOL
 R-Core1(dhcp-config)# network 10.2.21.0 255.255.255.0
 R-Core1(dhcp-config)# default-router 10.2.21.1
 
-# Pool para VLAN 30 — Logística
+# Pool para VLAN 31 — Logística
 R-Core1(config)# ip dhcp pool VLAN31_POOL
 R-Core1(dhcp-config)# network 10.2.31.0 255.255.255.0
 R-Core1(dhcp-config)# default-router 10.2.31.1
@@ -401,7 +396,7 @@ DSW-01(config-if)# no shutdown
 
 A seguir, a ordem recomendada de configuração para replicar este laboratório:
 
-### Etapa 1 — Atribuiçaõ de hostnames, username e senha para as linhas (todos os switches)
+### Etapa 1 — Atribuição de hostnames, username e senha para as linhas (todos os switches)
 
 ### Etapa 2 — Criação e nomeação das VLANs (todos os switches)
 
