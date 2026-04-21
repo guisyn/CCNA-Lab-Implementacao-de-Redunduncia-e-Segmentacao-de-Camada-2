@@ -1,7 +1,7 @@
 # CCNA-Lab-Implementação-de-Redundância-e-Segmentação-de-Camada-2
 Demonstrar a configuração de uma topologia resiliente utilizando EtherChannel (LACP), Rapid-PVST+ para prevenção de loops, segmentação de rede, roteamento inter-VLAN via Router-on-a-Stick e serviço DHCP.
 
-> **Ambiente:** Eve-NG | **Nível:** CCNA (200-301) | **Autor:** [Seu Nome]
+> **Ambiente:** Eve-NG | **Nível:** CCNA (200-301) | **Autor:** Guilherme Rodrigues
 
 ---
 
@@ -115,7 +115,7 @@ DSW-01(config)# enable secret ccna
 DSW-01(config)# service password-encryption
 ```
 
-> 📸 (img/
+> 📸 !(CONFIG-INICIAL.png)
 
 **Aspectos técnicos relevantes:**
 
