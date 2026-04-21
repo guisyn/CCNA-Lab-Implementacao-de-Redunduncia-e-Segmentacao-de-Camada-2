@@ -31,7 +31,9 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 
 ## Topologia
 
-![Topologia Eve-NG](./topologia.png)
+![Topologia Eve-NG]
+<img width="1365" height="767" alt="TOPOLOGIA" src="https://github.com/user-attachments/assets/90914031-a444-4197-867c-415d74a1fbd9" />
+
 
 > *Diagrama gerado no Eve-NG. Os switches de distribuição formam o núcleo da rede, conectados ao roteador para o roteamento inter-VLAN.*
 
@@ -115,7 +117,9 @@ DSW-01(config)# enable secret ccna
 DSW-01(config)# service password-encryption
 ```
 
-> 📸 !(CONFIG-INICIAL.png)
+<img width="1365" height="767" alt="CONFIG-INICIAL" src="https://github.com/user-attachments/assets/3f6e8dbc-84e9-48f5-a27c-7d85c58d0ffb" />
+
+> *Configurações iniciais, replicadas em cada switch e também no roteador.*
 
 **Aspectos técnicos relevantes:**
 
@@ -144,20 +148,20 @@ DSW-01(config)# service password-encryption
 # Nos dois switches — interfaces a serem agrupadas
 DSW-01(config)# interface range g0/0 - 1
 DSW-01(config-if-range)# channel-group 1 mode active
-DSW-01(config-if-range)# switchport mode trunk
-DSW-01(config-if-range)# switchport trunk native vlan 199
-DSW-01(config-if-range)# switchport trunk allowed vlan 21,30,99,199
 
 # Configurar a interface lógica (Port-Channel)
 DSW-01(config)# interface port-channel 1
 DSW-01(config-if)# switchport mode trunk
 DSW-01(config-if)# switchport trunk native vlan 199
-DSW-01(config-if)# switchport trunk allowed vlan 21,30,99,199
 ```
 
-> 📸 *[Inserir screenshot do `show etherchannel summary` aqui]*
+<img width="1365" height="767" alt="ETHERCHANNEL-SUM" src="https://github.com/user-attachments/assets/f65a1e08-9562-4abf-9eb4-17136b71f6ec" />
 
-### 1. VLANs (Virtual Local Area Networks)
+> *Verificação com o comando 'show etherchannel summary'.*
+
+---
+
+### 3. VLANs (Virtual Local Area Networks)
 
 **O que é:** Uma VLAN é uma subdivisão lógica de uma rede física. Dispositivos em VLANs diferentes não se comunicam diretamente — o tráfego precisa passar por um roteador (ou switch L3). Isso proporciona segurança, organização e controle de broadcast.
 
@@ -180,6 +184,9 @@ Switch(config)# vlan 199
 Switch(config-vlan)# name NATIVA
 ```
 
+<img width="1365" height="767" alt="VLANs" src="https://github.com/user-attachments/assets/1d2001b8-93aa-40b5-ae9b-5250f2ae7d23" />
+> *Verificação com o comando 'show vlan'.*
+
 ```bash
 # Porta de acesso (host)
 Switch(config-if)# switchport mode access
@@ -191,7 +198,8 @@ Switch(config-if)# switchport trunk native vlan 199
 Switch(config-if)# switchport trunk allowed vlan 21,30,99,199
 ```
 
-> 📸 *[Inserir screenshot da configuração de VLANs aqui]*
+<img width="1365" height="767" alt="TRUNKS" src="https://github.com/user-attachments/assets/e5da066b-27dc-4f97-a325-7b1a40738cce" />
+> *Verificação com o comando 'show interface trunk'.*
 
 ---
 
