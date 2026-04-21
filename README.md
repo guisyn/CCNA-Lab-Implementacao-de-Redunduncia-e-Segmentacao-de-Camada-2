@@ -89,8 +89,6 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 ---
 
 
----
-
 ## Tecnologias Utilizadas
 
 ### 1 — Configuração Inicial e Segurança Básica (todos os dispositivos)
@@ -389,7 +387,7 @@ DSW-01(config-if)# no shutdown
 - **VLAN 99 como VLAN de gerência** — Isolar o tráfego de gerenciamento em uma VLAN dedicada é uma prática de segurança recomendada, impedindo que usuários em VLANs de produção (TI, Logística) acessem diretamente as interfaces de administração dos switches.
 
 
-> ✅ **Resultado:** Todas as VPCs as SVIs dos switches passaram a obter IPs automaticamente, confirmando que o servidor DHCP, as subinterfaces do Router-on-a-Stick e as VLANs estão operando de forma integrada.
+> ✅ **Resultado:** Todas as VPCs e as SVIs dos switches passaram a obter IPs automaticamente, confirmando que o servidor DHCP, as subinterfaces do Router-on-a-Stick e as VLANs estão operando de forma integrada.
 ---
 
 ## Configuração Passo a Passo
