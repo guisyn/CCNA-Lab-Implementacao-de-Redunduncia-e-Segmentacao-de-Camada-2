@@ -59,7 +59,7 @@ A topologia reflete cenários reais de redes corporativas, onde diferentes depar
 |---|---|---|
 | 21 | TI | Departamento de Tecnologia da Informação |
 | 31 | LOGISTICA | Departamento de Logística |
-| 99 | GERENCIA | Departamento de Gerência |
+| 99 | GERENCIA | Acesso Remoto SSH/Telnet |
 | 199 | NATIVA | VLAN Nativa (untagged) |
 
 ### Gateways (Subinterfaces no Roteador)
