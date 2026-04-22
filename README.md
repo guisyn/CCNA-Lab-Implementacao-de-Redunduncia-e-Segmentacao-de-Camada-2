@@ -187,6 +187,7 @@ Switch(config-vlan)# name NATIVA
 ```
 
 <img width="1365" height="767" alt="VLANs" src="https://github.com/user-attachments/assets/1d2001b8-93aa-40b5-ae9b-5250f2ae7d23" />
+
 > *Verificação com o comando 'show vlan'.*
 
 ```bash
@@ -197,6 +198,7 @@ Switch(config-if)# switchport trunk native vlan 199
 ```
 
 <img width="1365" height="767" alt="TRUNKS" src="https://github.com/user-attachments/assets/e5da066b-27dc-4f97-a325-7b1a40738cce" />
+
 > *Verificação com o comando 'show interface trunk'.*
 
 ---
@@ -230,6 +232,8 @@ DSW-02(config)# spanning-tree vlan 21,99 root secondary
 
 <img width="1365" height="767" alt="DSW1-BRIDGE-CONFIG" src="https://github.com/user-attachments/assets/9fd30619-1e1e-4e3c-b30a-5c605d21a044" />
 
+> *Configuraçao de root bridge no DSW-01, o Rapid-PVST+ já havia sido hablitado globalmente no início do lab.*
+
 ---
 
 ### 5. Portas de Acesso e Segurança STP (PortFast + BPDU Guard)
@@ -257,6 +261,7 @@ ASW-01(config-if-range)# spanning-tree bpduguard enable
 
 <img width="1363" height="767" alt="ACCESS-PORTFAST" src="https://github.com/user-attachments/assets/e738444d-152d-49b3-beaa-a927a9a215aa" />
 
+> *Configuração das portas de acesso e atribuição de PortFast e BPDU Guard nas mesmas.*
 
 
 **Aspectos técnicos relevantes:**
@@ -309,7 +314,9 @@ Router(config)# interface g0/0.199
 Router(config-subif)# encapsulation dot1Q 199 native
 ```
 
-> 📸 *[Inserir screenshot das subinterfaces (`show ip interface brief`) aqui]*
+<img width="1365" height="767" alt="image" src="https://github.com/user-attachments/assets/74c5c6b9-7f2b-40d6-9b34-8bc2ed911b51" />
+
+> *Configuração das subinterfaces e encapsulamento 802.1q*
 
 ---
 
