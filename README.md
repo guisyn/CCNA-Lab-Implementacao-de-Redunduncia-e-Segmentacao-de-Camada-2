@@ -155,11 +155,7 @@ DSW-01(config)# service password-encryption
 DSW-01(config)# interface range g0/0 - 1
 DSW-01(config-if-range)# channel-group 1 mode active
 
-# Configurar a interface lógica (Port-Channel)
-DSW-01(config)# interface port-channel 1
-DSW-01(config-if)# switchport mode trunk
-DSW-01(config-if)# switchport trunk native vlan 199
-```
+
 
 <img width="1365" height="767" alt="ETHERCHANNEL-SUM" src="https://github.com/user-attachments/assets/f65a1e08-9562-4abf-9eb4-17136b71f6ec" />
 
@@ -198,7 +194,6 @@ Switch(config-vlan)# name NATIVA
 # Links trunk (entre switches e para o roteador)
 Switch(config-if)# switchport mode trunk
 Switch(config-if)# switchport trunk native vlan 199
-
 ```
 
 <img width="1365" height="767" alt="TRUNKS" src="https://github.com/user-attachments/assets/e5da066b-27dc-4f97-a325-7b1a40738cce" />
