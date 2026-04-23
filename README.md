@@ -160,7 +160,7 @@ DSW-01(config-if-range)# channel-group 1 mode active
 <img width="1365" height="767" alt="ETHERCHANNEL-SUM" src="https://github.com/user-attachments/assets/f65a1e08-9562-4abf-9eb4-17136b71f6ec" />
 
 > *Verificação com o comando 'show etherchannel summary'.*
-
+```
 ---
 
 ### 3. VLANs (Virtual Local Area Networks)
